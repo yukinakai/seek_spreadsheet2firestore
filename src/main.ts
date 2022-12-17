@@ -6,30 +6,43 @@ function main() {
   const lastRow = workSheet?.getLastRow();
   const lastCol = workSheet?.getLastColumn();
   const data = workSheet?.getRange(1,1,lastRow!,lastCol!).getDisplayValues();
-  // console.log(data!)
   // 取得したデータを整形する
   const cols = data![0];
-  console.log(cols)
-  const formatted_data = []
+  const formattedData = []
   for (var i=1; i<data!.length;i++) {
     const row: {[key: string]: string|string[]} = {};
     for (var h=0; h<cols.length;h++) {
       const k = cols[h];
-      if (k=='serviceUid') {
-        continue //serviceUidはデータに含まない。update処理を作る際に再度考える
-      }
       let v: string|string[] = data![i][h];
+      if (k=='serviceUid' && v.length==0) {
+        continue
+      }
       if (k.match(/.*enable/) || k=='companyPublic') {
         v = JSON.parse(v.toLowerCase())
       } else if (k.match(/.*Features/) || k=='businessModel') {
         v = (v.length==0) ? [] : String(v).split(',').map((_v)=>_v.trim())
       }
       row[k] = v
-    }
-    formatted_data.push(row)
+      }
+    formattedData.push(serviceModel(row))
   }
-  console.log(formatted_data)
   // 整形したデータをfirebaseに送る
-  //// UIDがある場合は更新処理を行う
-  //// UIDがない場合は新規登録処理を行う
+  const props = PropertiesService.getScriptProperties();
+  const [email, key, projectId] = [props.getProperty('CLIENT_EMAIL'), props.getProperty('PRIVATE_KEY')!.replace(/\\n/g, '\n'), props.getProperty('PROJECT_ID')];
+  const firestore = FirestoreApp.getFirestore(email, key, projectId);
+  for (var i=0; i<formattedData?.length; i++) {
+    const service: Service = formattedData[i]
+    if (service.serviceUid) {
+      // UIDがある場合は更新処理を行う
+      const serviceUid = service.serviceUid;
+      delete service['serviceUid'];
+      firestore.updateDocument('services/'+serviceUid, service);
+    } else {
+      // UIDがない場合は新規登録処理を行い、IDをスプシに保存する
+      const serviceUid = firestore.createDocument('services', service).name.split('/').pop();
+      const rowNum = workSheet?.createTextFinder(service.url!).matchEntireCell(true).findAll()[0].getRow();
+      workSheet?.getRange(rowNum!, 1).setValue(serviceUid)
+    }
+  }
+  // TODO: マスタデータのアップデート
 }
