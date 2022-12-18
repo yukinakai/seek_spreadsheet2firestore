@@ -20,6 +20,7 @@ function main() {
       } else if (k.match(/.*Features/) || k=='businessModel') {
         v = (v.length==0) ? [] : String(v).split(',').map((_v)=>_v.trim())
       }
+      // TODO: ソート順のスコアをつける
       row[k] = v
       }
     formattedData.push(serviceModel(row))
@@ -42,16 +43,20 @@ function main() {
     others = others.concat(service.otherFeatures);
   }
   const msts: any[][] = [['areas', areas], ['employments', employments], ['jobTypes', jobTypes], ['ages', ages], ['others', others]];
+  let allJobTypes;
   for (var c=0; c<msts.length;c++) {
-    const newMst = msts[c][1].filter((value: string, i: number)=>msts[c][1].indexOf(value)==i);
+    const mst = msts[c][1].filter((value: string, i: number)=>msts[c][1].indexOf(value)==i);
     const existedMst = firestore.getDocuments(msts[c][0]).map((value: {[key: string]: string})=>value.name.split('/').pop());
-    const createMst = newMst.filter((value: string)=>existedMst.indexOf(value)==-1);
-    const deleteMst = existedMst.filter((value: string)=>newMst.indexOf(value)==-1);
-    for (var i=0; i<createMst.length;i++) {
-      firestore.createDocument(msts[c][0]+'/'+createMst[i], {});
+    const newMst = mst.filter((value: string)=>existedMst.indexOf(value)==-1);
+    const deleteMst = existedMst.filter((value: string)=>mst.indexOf(value)==-1);
+    for (var i=0; i<newMst.length;i++) {
+      firestore.createDocument(msts[c][0]+'/'+newMst[i], {});
     }
     for (var i=0; i<deleteMst.length;i++) {
       firestore.deleteDocument(msts[c][0]+"/"+deleteMst[i]);
+    }
+    if (msts[c][0]=='jobTypes') {
+      allJobTypes = mst
     }
   }
   // マスタのデフォルト値を定義
@@ -61,26 +66,27 @@ function main() {
   for (var i=0; i<masterAllData!.length;i++) {
     masterAll[masterAllData![i][0]] = String(masterAllData![i][1]).split(',').map((_v)=>_v.trim())
   }
-  const allJobTypes = firestore.getDocuments('jobTypes').map((value: {[key: string]: string})=>value.name.split('/').pop())
   // サービスの更新
   for (var i=0; i<formattedData.length; i++) {
     const service: Service = formattedData[i]
+    // xxFeaturesが[]の場合、デフォルトの値を当てつける
+    if (service['areaFeatures'].length==0) {
+      service['areaFeatures'] = masterAll['areaFeatures'];
+    }
+    if (service['employmentFeatures'].length==0) {
+      service['employmentFeatures'] = masterAll['employmentFeatures'];
+    }
+    if (service['jobTypeFeatures'].length==0) {
+      service['jobTypeFeatures'] = allJobTypes;
+    }
+    if (service['ageFeatures'].length==0) {
+      service['ageFeatures'] = masterAll['ageFeatures'];
+    }
+    // 更新 or 新規処理
     if (service.serviceUid) {
       // UIDがある場合は更新処理を行う
       const serviceUid = service.serviceUid;
       delete service['serviceUid'];
-      if (service['areaFeatures'].length==0) {
-        service['areaFeatures'] = masterAll['areaFeatures'];
-      }
-      if (service['employmentFeatures'].length==0) {
-        service['employmentFeatures'] = masterAll['employmentFeatures'];
-      }
-      if (service['jobTypeFeatures'].length==0) {
-        service['jobTypeFeatures'] = allJobTypes;
-      }
-      if (service['ageFeatures'].length==0) {
-        service['ageFeatures'] = masterAll['ageFeatures'];
-      }
       firestore.updateDocument('services/'+serviceUid, service);
       updatedServices.push(serviceUid)
     } else {
