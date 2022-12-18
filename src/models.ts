@@ -1,23 +1,23 @@
 type Service = {
   serviceUid?: string;
-  name?: string;
-  url?: string;
-  summary?: string;
-  detail?: string;
-  areaFeatures?: string[];
-  employmentFeatures?: string[];
-  jobTypeFeatures?: string[];
-  ageFeatures?: string[];
-  otherFeatures?: string[];
-  searchOffers?: {enable?: boolean, remarks?: string};
-  apply?: {enable?: boolean, remarks?: string};
-  agentService?: {enable?: boolean, remarks?: string};
-  scout?: {enable?: boolean, remarks?: string};
-  companyName?: string;
-  companyUrl?: string;
-  businessModel?: string[];
-  companyBusiness?: string;
-  companyPublic?: boolean;
+  name: string;
+  url: string;
+  summary: string;
+  detail: string;
+  areaFeatures: string[];
+  employmentFeatures: string[];
+  jobTypeFeatures: string[];
+  ageFeatures: string[];
+  otherFeatures: string[];
+  searchOffers: {enable: boolean, remarks: string};
+  apply: {enable: boolean, remarks: string};
+  agentService: {enable: boolean, remarks: string};
+  scout: {enable: boolean, remarks: string};
+  companyName: string;
+  companyUrl: string;
+  businessModel: string[];
+  companyBusiness: string;
+  companyPublic: boolean;
 }
 
 function serviceModel(data: any) {
