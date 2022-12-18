@@ -31,18 +31,20 @@ function main() {
   const [email, key, projectId] = [props.getProperty('CLIENT_EMAIL'), props.getProperty('PRIVATE_KEY')!.replace(/\\n/g, '\n'), props.getProperty('PROJECT_ID')];
   const firestore = FirestoreApp.getFirestore(email, key, projectId);
   // マスターデータ更新用の配列
-  let areas: any[] = [];
-  let employments: any[] = [];
-  let jobTypes: any[] = [];
-  let ages: any[] = [];
-  let others: any[] = [];
-  for (var i=0; i<formattedData?.length; i++) {
+  let [areas, employments, jobTypes, ages, others]: any[] = [[], [], [], [], []];
+  // firestoreに登録済みのサービス一覧の取得
+  const allDocs = firestore.getDocuments('services');
+  const existedServices: string[] = allDocs.map((value: {[key: string]: string})=>value.name.split('/').pop());
+  const updatedServices: string[] = []
+  // サービスの更新
+  for (var i=0; i<formattedData.length; i++) {
     const service: Service = formattedData[i]
     if (service.serviceUid) {
       // UIDがある場合は更新処理を行う
       const serviceUid = service.serviceUid;
       delete service['serviceUid'];
       firestore.updateDocument('services/'+serviceUid, service);
+      updatedServices.push(serviceUid)
     } else {
       // UIDがない場合は新規登録処理を行い、IDをスプシに保存する
       const serviceUid = firestore.createDocument('services', service).name.split('/').pop();
@@ -54,6 +56,11 @@ function main() {
     jobTypes = jobTypes.concat(service.jobTypeFeatures);
     ages = ages.concat(service.ageFeatures);
     others = others.concat(service.otherFeatures);
+  }
+  // サービスの削除
+  const deleteServices = existedServices.filter((value: string)=>updatedServices.indexOf(value)==-1);
+  for (var i=0; i<deleteServices.length; i++) {
+    firestore.deleteDocument("services/"+deleteServices[i]);
   }
   // マスタデータのアップデート
   const msts: any[][] = [['areas', areas], ['employments', employments], ['jobTypes', jobTypes], ['ages', ages], ['others', others]];
