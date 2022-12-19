@@ -20,7 +20,6 @@ function main() {
       } else if (k.match(/.*Features/) || k=='businessModel') {
         v = (v.length==0) ? [] : String(v).split(',').map((_v)=>_v.trim())
       }
-      // TODO: ソート順のスコアをつける
       row[k] = v
       }
     formattedData.push(serviceModel(row))
@@ -70,17 +69,24 @@ function main() {
   for (var i=0; i<formattedData.length; i++) {
     const service: Service = formattedData[i]
     // xxFeaturesが[]の場合、デフォルトの値を当てつける
-    if (service['areaFeatures'].length==0) {
-      service['areaFeatures'] = masterAll['areaFeatures'];
-    }
-    if (service['employmentFeatures'].length==0) {
-      service['employmentFeatures'] = masterAll['employmentFeatures'];
-    }
-    if (service['jobTypeFeatures'].length==0) {
-      service['jobTypeFeatures'] = allJobTypes;
-    }
-    if (service['ageFeatures'].length==0) {
-      service['ageFeatures'] = masterAll['ageFeatures'];
+    // ソート順のスコアをつける
+    let score1 = 0;
+    let score2 = 0;
+    for (let col of ['areaFeatures', 'employmentFeatures', 'jobTypeFeatures', 'ageFeatures', 'otherFeatures']) {
+      if (col=='otherFeatures') {
+        score2 = service[col].length
+      } else {
+        if (col=='jobTypeFeatures') {
+          service[col] = allJobTypes;
+        } else {
+          // @ts-ignore
+          service[col] = masterAll[col];
+        }
+        // @ts-ignore
+        score1 += service[col].length
+      }
+      service['score1'] = score1;
+      service['score2'] = score2;
     }
     // 更新 or 新規処理
     if (service.serviceUid) {

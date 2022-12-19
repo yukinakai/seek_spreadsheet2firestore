@@ -18,6 +18,8 @@ type Service = {
   businessModel: string[];
   companyBusiness: string;
   companyPublic: boolean;
+  score1?: number;
+  score2?: number;
 }
 
 function serviceModel(data: any) {
