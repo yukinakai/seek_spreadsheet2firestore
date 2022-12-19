@@ -27,6 +27,7 @@ function main() {
   // firebaseの設定
   const props = PropertiesService.getScriptProperties();
   const [email, key, projectId] = [props.getProperty('CLIENT_EMAIL'), props.getProperty('PRIVATE_KEY')!.replace(/\\n/g, '\n'), props.getProperty('PROJECT_ID')];
+  // @ts-ignore
   const firestore = FirestoreApp.getFirestore(email, key, projectId);
   // firestoreに登録済みのサービス一覧の取得
   const existedServices: string[] = firestore.getDocuments('services').map((value: {[key: string]: string})=>value.name.split('/').pop());
