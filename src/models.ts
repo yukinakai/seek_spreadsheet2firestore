@@ -13,6 +13,7 @@ type Service = {
   apply: {enable: boolean, remarks: string};
   agentService: {enable: boolean, remarks: string};
   scout: {enable: boolean, remarks: string};
+  otherFunction: string;
   companyName: string;
   companyUrl: string;
   businessModel: string[];
@@ -49,6 +50,7 @@ function serviceModel(data: any) {
       enable: data['scout.enable'],
       remarks: data['scout.remarks'],
     },
+    otherFunction: data.otherFunction,
     companyName: data.companyName,
     companyUrl: data.companyUrl,
     businessModel: data.businessModel,
