@@ -32,6 +32,13 @@ function main() {
   // firestoreに登録済みのサービス一覧の取得
   const existedServices: string[] = firestore.getDocuments('services').map((value: {[key: string]: string})=>value.name.split('/').pop());
   const updatedServices: string[] = []
+  // データに紐付けるマスタのデフォルト値(全件)を定義
+  const mstSheet = workBook.getSheetByName('mst');
+  const masterAllData = mstSheet?.getRange(1, 1, mstSheet?.getLastRow()!, mstSheet?.getLastColumn()!).getDisplayValues();
+  const masterAll: {[key: string]: string[]} = {};
+  for (var i=0; i<masterAllData!.length;i++) {
+    masterAll[masterAllData![i][0]] = String(masterAllData![i][1]).split(',').map((_v)=>_v.trim())
+  }
   // マスターデータのアップデート
   let [areas, employments, jobTypes, ages, others]: any[] = [[], [], [], [], []];
   for (var i=0; i<formattedData.length; i++) {
@@ -57,14 +64,8 @@ function main() {
     }
     if (msts[c][0]=='jobTypes') {
       allJobTypes = mst
+      mstSheet?.getRange(4, 2).setValue(allJobTypes.join(','))
     }
-  }
-  // マスタのデフォルト値を定義
-  const mstSheet = workBook.getSheetByName('mst');
-  const masterAllData = mstSheet?.getRange(1, 1, mstSheet?.getLastRow()!, mstSheet?.getLastColumn()!).getDisplayValues();
-  const masterAll: {[key: string]: string[]} = {};
-  for (var i=0; i<masterAllData!.length;i++) {
-    masterAll[masterAllData![i][0]] = String(masterAllData![i][1]).split(',').map((_v)=>_v.trim())
   }
   // サービスの更新
   for (var i=0; i<formattedData.length; i++) {
