@@ -64,7 +64,6 @@ function main() {
     }
     if (msts[c][0]=='jobTypes') {
       allJobTypes = mst
-      mstSheet?.getRange(4, 2).setValue(allJobTypes.join(','))
     }
   }
   // サービスの更新
@@ -78,11 +77,14 @@ function main() {
       if (col=='otherFeatures') {
         score2 = service[col].length
       } else {
-        if (col=='jobTypeFeatures') {
-          service[col] = allJobTypes;
-        } else {
-          // @ts-ignore
-          service[col] = masterAll[col];
+        // @ts-ignore
+        if (service[col].length==0) {
+          if (col=='jobTypeFeatures') {
+            service[col] = allJobTypes;
+          } else {
+            // @ts-ignore
+            service[col] = masterAll[col];
+          }
         }
         // @ts-ignore
         score1 += service[col].length
