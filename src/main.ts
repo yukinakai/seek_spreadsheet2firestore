@@ -78,16 +78,7 @@ function main() {
         score2 = service[col].length
       } else {
         // @ts-ignore
-        if (service[col].length==0) {
-          if (col=='jobTypeFeatures') {
-            service[col] = allJobTypes;
-          } else {
-            // @ts-ignore
-            service[col] = masterAll[col];
-          }
-        }
-        // @ts-ignore
-        score1 += service[col].length
+        score1 += service[col].length==0 ? 100:service[col].length
       }
       service['score1'] = score1;
       service['score2'] = score2;
